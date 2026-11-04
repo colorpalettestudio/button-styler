@@ -482,15 +482,6 @@ export default function ButtonsPanel({
           ) : (
             <p className="cta-board__empty">Add your first button or link style to get started.</p>
           )}
-
-          <button
-            type="button"
-            className="cta-board__add"
-            onClick={() => setModalState({ mode: "add" })}
-            disabled={colors.length === 0}
-          >
-            + Add style
-          </button>
         </div>
       </section>
 
@@ -498,9 +489,19 @@ export default function ButtonsPanel({
         <button type="button" className="btn-ghost" onClick={onBack}>
           ← Back
         </button>
-        <button type="button" className="btn-primary" onClick={onContinue}>
-          Next: Export →
-        </button>
+        <div className="step__footer-actions">
+          <button
+            type="button"
+            className="btn-dark"
+            onClick={() => setModalState({ mode: "add" })}
+            disabled={colors.length === 0}
+          >
+            + Add style
+          </button>
+          <button type="button" className="btn-primary" onClick={onContinue}>
+            Next: Export →
+          </button>
+        </div>
       </footer>
 
       {modalState && (
