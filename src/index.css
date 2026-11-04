@@ -1,0 +1,136 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --border: #e5e5e5;
+  --border-subtle: #f0f0f0;
+  --text: #111111;
+  --text-muted: #737373;
+  --text-subtle: #a3a3a3;
+  --text-faint: #cccccc;
+  --brand-bio-panel-width: 16.5rem;
+  --type-wizard-preview-width: calc(var(--brand-bio-panel-width) * 2.25);
+  --accent: #4640dd;
+  --brand-spectrum: conic-gradient(
+    from 200deg at 50% 50%,
+    #e8487a,
+    #f06050,
+    #f0a050,
+    #c4a035,
+    #5cb88a,
+    #4a90d9,
+    #6eb5e8,
+    #9b9edc,
+    #f5c4d0,
+    #d946a8,
+    #e8487a
+  );
+  --accent-soft: #e5e6ff;
+  --sidebar-width: 240px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --font-ui: "Outfit", system-ui, sans-serif;
+  --font-heading: "Outfit", system-ui, sans-serif;
+  --font-input-serif: "Instrument Serif", Georgia, serif;
+  --font-input-sans: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --font-card-footer: #f5f5f5;
+  --font-card-footer-text: #1a1a1a;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input[type="color"] {
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+input[type="text"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.02em;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.field-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .field-row,
+  .field-row-3 {
+    grid-template-columns: 1fr;
+  }
+}

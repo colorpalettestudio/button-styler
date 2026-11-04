@@ -1,0 +1,23 @@
+{
+  "name": "button-styler",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "fonts:update": "mkdir -p public && curl -fsSL 'https://fonts.google.com/metadata/fonts' | node -e \"const fs=require('fs');let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const j=JSON.parse(d);const list=j.familyMetadataList.map(f=>({family:f.family,category:f.category||'',popularity:f.popularity??9999}));fs.writeFileSync('public/google-fonts.json',JSON.stringify(list));console.log('Updated',list.length,'Google Fonts');});\""
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}
