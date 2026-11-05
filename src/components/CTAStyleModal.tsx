@@ -67,6 +67,7 @@ interface CTAStyleModalProps {
   approvedPairings: ApprovedColorPairing[];
   /** Pairings came from a Studio Code import rather than the contrast check. */
   pairingsAreFavorites?: boolean;
+  previewBackground?: string;
   isNew?: boolean;
   /** Used for fallback style names in saved data (e.g. 1 → "Style 1"). */
   fallbackStyleIndex?: number;
@@ -173,17 +174,33 @@ function PaletteDots({
   paletteColors,
   value,
   onChange,
+  onNone,
 }: {
   label: string;
   ariaLabel?: string;
   paletteColors: BrandColor[];
   value: string | undefined;
   onChange: (colorId: string) => void;
+  /** Adds a leading "None" option, selected when value is undefined. */
+  onNone?: () => void;
 }) {
   return (
     <div className="cta-editor__field">
       <span className="cta-editor__label">{label}</span>
       <div className="cta-editor__dots" role="radiogroup" aria-label={ariaLabel ?? label}>
+        {onNone && (
+          <button
+            type="button"
+            role="radio"
+            aria-checked={value === undefined}
+            className={`cta-editor__dot ${value === undefined ? "cta-editor__dot--selected" : ""}`}
+            onClick={onNone}
+            title="None"
+            aria-label="None"
+          >
+            <span className="cta-editor__chip cta-editor__chip--none" />
+          </button>
+        )}
         {paletteColors.map((color) => (
           <button
             key={color.id}
@@ -336,6 +353,7 @@ export default function CTAStyleModal({
   typography,
   approvedPairings,
   pairingsAreFavorites = false,
+  previewBackground,
   isNew = false,
   fallbackStyleIndex,
   onSave,
@@ -472,6 +490,7 @@ export default function CTAStyleModal({
     styleType === "button" &&
     strokeSliderValue > 0 &&
     (fill === "solid-outline" || fill === "solid");
+  const showPairingChips = styleType === "button" && fill !== "outline";
   const userApprovedPairings = useMemo(
     () => resolveUserApprovedPairings(approvedPairings, paletteColors),
     [approvedPairings, paletteColors],
@@ -480,13 +499,16 @@ export default function CTAStyleModal({
   const hoverTouchedRef = useRef(Boolean(definition?.hoverFillColorId));
   const hoverTextTouchedRef = useRef(Boolean(definition?.hoverTextColorId));
   const hoverBorderTouchedRef = useRef(Boolean(definition?.hoverBorderColorId));
+  const [hoverBackgroundColorId, setHoverBackgroundColorId] = useState<string | undefined>(
+    definition?.hoverBackgroundColorId,
+  );
   const textTouchedRef = useRef(Boolean(definition?.textColorId));
   const borderTouchedRef = useRef(Boolean(definition?.initialBorderColorId));
   const [advancedOpen, setAdvancedOpen] = useState(true);
-
+  const commitRef = useRef<() => void>(() => {});
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") commitRef.current();
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -495,7 +517,7 @@ export default function CTAStyleModal({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     const trapFocus = (e: KeyboardEvent) => {
@@ -558,7 +580,9 @@ export default function CTAStyleModal({
       const suggested = suggestHoverColors(colorId, text, approvedPairings, paletteColors);
       setHoverFillColorId(suggested.hoverFillColorId);
       if (!hoverTextTouchedRef.current) {
-        setHoverTextColorId(suggested.hoverTextColorId);
+        setHoverTextColorId(
+          fill === "outline" ? suggested.hoverFillColorId : suggested.hoverTextColorId,
+        );
       }
     }
   };
@@ -572,7 +596,9 @@ export default function CTAStyleModal({
     setHoverFillColorId(colorId);
     if (!hoverTextTouchedRef.current) {
       setHoverTextColorId(
-        ensureContrastingText(colorId, undefined, approvedPairings, paletteColors),
+        fill === "outline"
+          ? colorId
+          : ensureContrastingText(colorId, undefined, approvedPairings, paletteColors),
       );
     }
   };
@@ -595,6 +621,17 @@ export default function CTAStyleModal({
   const pickHoverBorderColor = (colorId: string) => {
     hoverBorderTouchedRef.current = true;
     setHoverBorderColorId(colorId);
+  };
+
+  const pickHoverBackgroundColor = (colorId: string | undefined) => {
+    setHoverBackgroundColorId(colorId);
+    if (!hoverTextTouchedRef.current) {
+      setHoverTextColorId(
+        colorId
+          ? ensureContrastingText(colorId, hoverTextColorId, approvedPairings, paletteColors)
+          : hoverFillColorId,
+      );
+    }
   };
 
   const applyApprovedPairingToState = (
@@ -680,6 +717,13 @@ export default function CTAStyleModal({
         next === "outline"
           ? fillColorId
           : ensureContrastingText(fillColorId, undefined, approvedPairings, paletteColors),
+      );
+    }
+    if (!hoverTextTouchedRef.current && hoverFillColorId) {
+      setHoverTextColorId(
+        next === "outline"
+          ? hoverFillColorId
+          : ensureContrastingText(hoverFillColorId, undefined, approvedPairings, paletteColors),
       );
     }
     if (next === "solid-outline") {
@@ -782,6 +826,7 @@ export default function CTAStyleModal({
             hoverBorderColorId,
           }
         : {}),
+      ...(fill === "outline" && hoverBackgroundColorId ? { hoverBackgroundColorId } : {}),
       ...(typeof borderRadius === "number" ? { borderRadius } : {}),
       borderWidth: strokeSliderValue,
       ...(typeof paddingX === "number" ? { paddingX } : {}),
@@ -807,6 +852,7 @@ export default function CTAStyleModal({
     fillColorId,
     borderColorId,
     hoverBorderColorId,
+    hoverBackgroundColorId,
     hoverFillColorId,
     textColorId,
     hoverTextColorId,
@@ -821,6 +867,25 @@ export default function CTAStyleModal({
   const previewCta = resolvedDefinition
     ? definitionToCTAStyle(resolvedDefinition, colors, typography, approvedPairings)
     : null;
+
+  const commit = () => {
+    if (!resolvedDefinition) {
+      onClose();
+      return;
+    }
+    if (styleType !== "button") {
+      const { letterSpacing: _omit, ...rest } = resolvedDefinition;
+      onSave(
+        definition?.letterSpacing !== undefined
+          ? { ...rest, letterSpacing: definition.letterSpacing }
+          : rest,
+      );
+      return;
+    }
+    // Persist explicit 0 so it does not fall back to the legacy 0.08em pin.
+    onSave(resolvedDefinition);
+  };
+  commitRef.current = commit;
 
   const modalTitle =
     styleType === "text-only"
@@ -841,7 +906,13 @@ export default function CTAStyleModal({
     styleType === "text-only" ? "e.g. Footer link" : "e.g. Main CTA";
 
   return (
-    <div className="type-modal-backdrop" onClick={onClose} role="presentation">
+    <div
+      className="type-modal-backdrop"
+      role="presentation"
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) commit();
+      }}
+    >
       <div
         ref={dialogRef}
         className="type-modal cta-editor"
@@ -849,19 +920,22 @@ export default function CTAStyleModal({
         aria-modal="true"
         aria-labelledby="cta-editor-title"
         tabIndex={-1}
-        onClick={(e) => e.stopPropagation()}
       >
         <header className="type-modal__header">
           <h2 id="cta-editor-title" className="type-modal__title">
             {modalTitle}
           </h2>
-          <button type="button" className="type-modal__close" onClick={onClose} aria-label="Close">
+          <button type="button" className="type-modal__close" onClick={commit} aria-label="Close">
             ×
           </button>
         </header>
 
         <div className="cta-editor__body">
-          <aside className="cta-editor__preview" aria-label="Button preview">
+          <aside
+            className="cta-editor__preview"
+            aria-label="Button preview"
+            style={previewBackground ? { backgroundColor: previewBackground } : undefined}
+          >
             <div className="cta-editor__preview-inner">
               {previewCta ? (
                 <>
@@ -930,7 +1004,7 @@ export default function CTAStyleModal({
             <div className="cta-editor__essentials">
               <div className="cta-editor__essentials-options">
                 <SegmentToggle
-                  label="Kind"
+                  label="Style type"
                   options={[
                     { value: "button", label: "Button" },
                     { value: "text-only", label: "Text only" },
@@ -991,7 +1065,13 @@ export default function CTAStyleModal({
             </div>
 
             <EditorGroup title="Colors">
-              {userApprovedPairings.length === 0 ? (
+              {!showPairingChips ? (
+                <p className="cta-editor__hint">
+                  {styleType === "text-only" ? "Text links" : "Outline buttons"} have no fill, so
+                  they sit right on your page background. Pick colors that stand out against it.
+                  {styleType === "button" && " You can still add a fill on hover."}
+                </p>
+              ) : userApprovedPairings.length === 0 ? (
                 <p className="cta-editor__hint">
                   None of your colors have enough contrast together for readable text. Add a very
                   light or very dark color in Brand colors.
@@ -1010,7 +1090,7 @@ export default function CTAStyleModal({
               )}
               <ColorStateSection
                 label="Initial"
-                pairings={userApprovedPairings}
+                pairings={showPairingChips ? userApprovedPairings : []}
                 isPairingSelected={isApprovedPairingSelected}
                 onPickPairing={(resolved) => applyApprovedPairingToState(resolved, "initial")}
                 pairingAriaLabel="Initial pairing"
@@ -1043,7 +1123,7 @@ export default function CTAStyleModal({
               </ColorStateSection>
               <ColorStateSection
                 label="Hover"
-                pairings={userApprovedPairings}
+                pairings={showPairingChips ? userApprovedPairings : []}
                 isPairingSelected={isApprovedPairingHover}
                 onPickPairing={(resolved) => applyApprovedPairingToState(resolved, "hover")}
                 pairingAriaLabel="Hover pairing"
@@ -1055,6 +1135,16 @@ export default function CTAStyleModal({
                   value={styleType === "text-only" ? hoverTextColorId : hoverFillColorId}
                   onChange={styleType === "text-only" ? pickTextOnlyHoverColor : pickHoverColor}
                 />
+                {styleType === "button" && fill === "outline" && (
+                  <PaletteDots
+                    label="Fill"
+                    ariaLabel="Hover fill"
+                    paletteColors={paletteColors}
+                    value={hoverBackgroundColorId}
+                    onChange={pickHoverBackgroundColor}
+                    onNone={() => pickHoverBackgroundColor(undefined)}
+                  />
+                )}
                 {styleType === "button" && (
                   <PaletteDots
                     label="Text color"
@@ -1222,23 +1312,10 @@ export default function CTAStyleModal({
           <button
             type="button"
             className="cta-editor__save"
-            onClick={() => {
-              if (!resolvedDefinition) return;
-              if (styleType !== "button") {
-                const { letterSpacing: _omit, ...rest } = resolvedDefinition;
-                onSave(
-                  definition?.letterSpacing !== undefined
-                    ? { ...rest, letterSpacing: definition.letterSpacing }
-                    : rest,
-                );
-                return;
-              }
-              // Persist explicit 0 so it does not fall back to the legacy 0.08em pin.
-              onSave(resolvedDefinition);
-            }}
+            onClick={commit}
             disabled={!resolvedDefinition}
           >
-            {isNew ? "Add style" : "Save"}
+            {isNew ? "Add style" : "Done"}
           </button>
         </footer>
       </div>

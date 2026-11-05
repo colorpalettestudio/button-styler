@@ -5,6 +5,7 @@ const CTA_COLOR_FIELDS = [
   "hoverFillColorId",
   "initialBorderColorId",
   "hoverBorderColorId",
+  "hoverBackgroundColorId",
   "textColorId",
   "hoverTextColorId",
 ] as const satisfies readonly (keyof CTAStyleDefinition)[];

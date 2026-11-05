@@ -102,11 +102,13 @@ export interface CTAStyleDefinition {
   presetId: string;
   /** Fill for solid/solid-outline buttons, border+text for outline, text for links. */
   initialFillColorId?: string;
-  /** Hover fill for solid/solid-outline/outline, hover text for ghost/link. */
+  /** Hover fill for solid/solid-outline, hover border for outline, hover text for ghost/link. */
   hoverFillColorId?: string;
   /** Border color for outline and solid-outline buttons. */
   initialBorderColorId?: string;
   hoverBorderColorId?: string;
+  /** Outline buttons only: fill added on hover. Omit = stays unfilled. */
+  hoverBackgroundColorId?: string;
   textColorId?: string;
   hoverTextColorId?: string;
   typographyStyleId?: TypographyRole;
@@ -228,8 +230,8 @@ export const DEFAULT_CTA_STYLE_DEFINITIONS: CTAStyleDefinition[] = [
     alignment: "center",
     initialFillColorId: "hero",
     textColorId: "hero",
-    hoverFillColorId: "hero",
-    hoverTextColorId: "light-1",
+    hoverFillColorId: "dark-1",
+    hoverTextColorId: "dark-1",
     sampleText: "Learn more",
   },
   {

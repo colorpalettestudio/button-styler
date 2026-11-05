@@ -704,16 +704,9 @@ function applyHoverColor(
         colors,
       );
   } else if (fill === "outline") {
-    next.backgroundColorId = colorId;
+    next.backgroundColorId = null;
     next.borderColorId = colorId;
-    next.textColorId =
-      explicitTextColorId ??
-      ensureContrastingText(
-        colorId,
-        hoverState.textColorId ?? defaultState.textColorId,
-        approvedPairings,
-        colors,
-      );
+    next.textColorId = explicitTextColorId ?? colorId;
   } else if (fill === "ghost" || fill === "text") {
     next.textColorId = explicitTextColorId ?? colorId;
   }
@@ -765,6 +758,10 @@ export function ctaDefinitionNeedsColorFix(
 
   const fill = getDefinitionFill(def, template);
 
+  if (fill === "outline") {
+    return outlineHoverTextBlendsIn(def, palette);
+  }
+
   if (fill === "solid" || fill === "solid-outline") {
     if (
       def.initialFillColorId &&
@@ -776,7 +773,7 @@ export function ctaDefinitionNeedsColorFix(
     }
   }
 
-  if (fill === "solid" || fill === "solid-outline" || fill === "outline") {
+  if (fill === "solid" || fill === "solid-outline") {
     if (
       def.hoverFillColorId &&
       def.hoverTextColorId &&
@@ -788,6 +785,17 @@ export function ctaDefinitionNeedsColorFix(
   }
 
   return false;
+}
+
+/** Older outline styles filled on hover, so their hover text is often near-white. */
+function outlineHoverTextBlendsIn(def: CTAStyleDefinition, palette: BrandColor[]): boolean {
+  if (def.hoverBackgroundColorId) return false;
+  const light = palette.find((c) => c.role === "light-neutral");
+  const hoverTextHex = colorHexById(def.hoverTextColorId, palette);
+  if (!light || !hoverTextHex) return false;
+  const hoverBorder = def.hoverFillColorId ?? def.initialFillColorId;
+  if (colorsMatchByIdOrHex(def.hoverTextColorId, hoverBorder, palette)) return false;
+  return getContrastRatio(hoverTextHex, light.hex) < 1.5;
 }
 
 export function reconcileCTAStyleDefinition(
@@ -810,6 +818,7 @@ export function reconcileCTAStyleDefinition(
     "hoverFillColorId",
     "initialBorderColorId",
     "hoverBorderColorId",
+    "hoverBackgroundColorId",
     "textColorId",
     "hoverTextColorId",
   ] as const) {
@@ -865,8 +874,16 @@ export function reconcileCTAStyleDefinition(
     }
   }
 
+  if (fill === "outline") {
+    const hoverBorder = result.hoverFillColorId ?? result.initialFillColorId;
+    const hoverText = outlineHoverTextBlendsIn(result, palette)
+      ? hoverBorder
+      : (result.hoverTextColorId ?? result.textColorId);
+    return { ...result, hoverFillColorId: hoverBorder, hoverTextColorId: hoverText };
+  }
+
   if (
-    (fill === "solid" || fill === "solid-outline" || fill === "outline") &&
+    (fill === "solid" || fill === "solid-outline") &&
     result.initialFillColorId &&
     result.textColorId
   ) {
@@ -1165,6 +1182,11 @@ export function definitionToCTAStyle(
       _colors,
       def.hoverTextColorId,
     );
+  }
+
+  if (fill === "outline") {
+    defaultState.backgroundColorId = null;
+    hoverState.backgroundColorId = def.hoverBackgroundColorId ?? null;
   }
 
   if (def.hoverBorderColorId && needsBorder) {

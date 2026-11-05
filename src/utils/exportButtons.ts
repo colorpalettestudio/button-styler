@@ -286,9 +286,9 @@ export function buildPreviewDocument(project: ButtonStylerProject, background: s
     .join("");
   return `<!doctype html><html><head><meta charset="utf-8"><style>${css}
 body{margin:0;padding:28px;background:${background};font-family:system-ui,sans-serif}
-.row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:14px 0;border-bottom:1px solid rgba(127,127,127,.18);overflow-x:auto}
+.row{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0;border-bottom:1px solid rgba(127,127,127,.18);overflow-x:auto;text-align:center}
 .row:last-child{border-bottom:0}
-.label{width:180px;flex-shrink:0;font:12px/1.4 ui-monospace,monospace;color:rgba(127,127,127,.95)}
+.label{font:12px/1.4 ui-monospace,monospace;color:rgba(127,127,127,.95)}
 </style></head><body>${items}</body></html>`;
 }
 

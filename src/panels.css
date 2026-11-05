@@ -126,6 +126,14 @@
   max-width: 1120px;
 }
 
+.step--full {
+  max-width: none;
+}
+
+.main:has(.step--full) {
+  max-width: none;
+}
+
 .step__header {
   display: flex;
   flex-direction: column;
@@ -711,6 +719,19 @@
   transition: background-color 0.2s;
 }
 
+.cta-editor__chip--none {
+  background:
+    linear-gradient(
+      135deg,
+      transparent calc(50% - 1px),
+      #d64545 calc(50% - 1px),
+      #d64545 calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    #fff;
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
 /* Export */
 .export-images__options {
   display: flex;
@@ -859,9 +880,42 @@
 
 .export-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(22rem, 1fr) minmax(0, 1.5fr);
   gap: 1.25rem;
   align-items: stretch;
+}
+
+.export-grid .scale-to-fit {
+  overflow: hidden;
+}
+
+.export-images {
+  container-type: inline-size;
+}
+
+@container (max-width: 960px) {
+  .export-images__row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    row-gap: 0.6rem;
+  }
+
+  .export-images__name {
+    grid-column: 1 / -1;
+  }
+
+  .export-images__cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .export-images__cell .scale-to-fit {
+    align-self: stretch;
+  }
+
+  .export-images__controls {
+    gap: 0.9rem 1.25rem;
+  }
 }
 
 .export-code__pre {

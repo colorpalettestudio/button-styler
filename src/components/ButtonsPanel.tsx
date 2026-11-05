@@ -511,6 +511,7 @@ export default function ButtonsPanel({
           typography={typography}
           approvedPairings={approvedPairings}
           pairingsAreFavorites={pairingsAreFavorites}
+          previewBackground={previewBackground}
           isNew={modalState.mode === "add"}
           fallbackStyleIndex={
             modalState.mode === "add"

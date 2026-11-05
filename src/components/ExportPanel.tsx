@@ -132,17 +132,7 @@ export default function ExportPanel({
     }
   };
 
-  return (
-    <div className="step step--wide">
-      <header className="step__header">
-        <p className="step__eyebrow">Step 4</p>
-        <h1 className="step__title">Export</h1>
-        <p className="step__lede">
-          Download images of your buttons for decks, mockups and brand docs, or copy the CSS to
-          use them on your website.
-        </p>
-      </header>
-
+  const imagesPanel = (
       <section className="panel export-images" aria-label="Images">
         <div className="panel__head">
           <div>
@@ -223,6 +213,35 @@ export default function ExportPanel({
           </p>
         )}
       </section>
+  );
+
+  return (
+    <div className="step step--full">
+      <header className="step__header">
+        <p className="step__eyebrow">Step 4</p>
+        <h1 className="step__title">Export</h1>
+        <p className="step__lede">
+          Test your buttons, copy the CSS to use them on your website, or download images for
+          decks, mockups and brand docs.
+        </p>
+      </header>
+
+      <section className="panel export-preview" aria-label="Live test">
+        <div className="panel__head">
+          <div>
+            <h2 className="panel__title">Live test</h2>
+            <p className="panel__subtitle">
+              Rendered from the exported CSS only. Hover and tab through to check each state.
+            </p>
+          </div>
+        </div>
+        <iframe
+          className="export-preview__frame"
+          title="Exported buttons preview"
+          srcDoc={previewDoc}
+          sandbox=""
+        />
+      </section>
 
       <div className="export-grid">
         <section className="panel export-code" aria-label="CSS">
@@ -252,22 +271,7 @@ export default function ExportPanel({
           </div>
         </section>
 
-        <section className="panel export-preview" aria-label="Live test">
-          <div className="panel__head">
-            <div>
-              <h2 className="panel__title">Live test</h2>
-              <p className="panel__subtitle">
-                Rendered from the exported CSS only. Hover and tab through to check each state.
-              </p>
-            </div>
-          </div>
-          <iframe
-            className="export-preview__frame"
-            title="Exported buttons preview"
-            srcDoc={previewDoc}
-            sandbox=""
-          />
-        </section>
+        {imagesPanel}
       </div>
 
       <footer className="step__footer">
