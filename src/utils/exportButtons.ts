@@ -281,11 +281,12 @@ export function buildPreviewDocument(project: ButtonStylerProject, background: s
   const items = buildExportedStyles(project)
     .map(
       ({ cta, className }) =>
-        `<div class="row"><span class="label">.${className}</span><a class="${className}" href="#">${escapeHtml(cta.sampleText)}</a></div>`,
+        `<div class="row"><span class="label">.${className}</span><button type="button" class="${className}">${escapeHtml(cta.sampleText)}</button></div>`,
     )
     .join("");
   return `<!doctype html><html><head><meta charset="utf-8"><style>${css}
 body{margin:0;padding:28px;background:${background};font-family:system-ui,sans-serif}
+button{-webkit-appearance:none;appearance:none;margin:0;font:inherit}
 .row{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0;border-bottom:1px solid rgba(127,127,127,.18);overflow-x:auto;text-align:center}
 .row:last-child{border-bottom:0}
 .label{font:12px/1.4 ui-monospace,monospace;color:rgba(127,127,127,.95)}

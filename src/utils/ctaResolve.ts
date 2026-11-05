@@ -787,6 +787,18 @@ export function ctaDefinitionNeedsColorFix(
   return false;
 }
 
+/** Palette color (other than `excludeId`) that stands out most against the light neutral page. */
+function mostVisibleOnPage(
+  excludeId: string | undefined,
+  palette: BrandColor[],
+): string | undefined {
+  const pageHex = palette.find((c) => c.role === "light-neutral")?.hex ?? "#FFFFFF";
+  return palette
+    .filter((c) => !colorsMatchByIdOrHex(c.id, excludeId, palette))
+    .map((c) => ({ id: c.id, ratio: getContrastRatio(c.hex, pageHex) }))
+    .sort((a, b) => b.ratio - a.ratio)[0]?.id;
+}
+
 /** Older outline styles filled on hover, so their hover text is often near-white. */
 function outlineHoverTextBlendsIn(def: CTAStyleDefinition, palette: BrandColor[]): boolean {
   if (def.hoverBackgroundColorId) return false;
@@ -834,12 +846,10 @@ export function reconcileCTAStyleDefinition(
       result.hoverFillColorId &&
       colorsMatchByIdOrHex(result.initialFillColorId, result.hoverFillColorId, palette)
     ) {
-      const alternate = palette.find(
-        (c) => !colorsMatchByIdOrHex(c.id, result.initialFillColorId, palette),
-      );
+      const alternate = mostVisibleOnPage(result.initialFillColorId, palette);
       if (alternate) {
-        result.hoverFillColorId = alternate.id;
-        result.hoverTextColorId = alternate.id;
+        result.hoverFillColorId = alternate;
+        result.hoverTextColorId = alternate;
       }
     }
     return result;
@@ -847,6 +857,18 @@ export function reconcileCTAStyleDefinition(
 
   const fill = getDefinitionFill(result, template);
   const pairing = pairings[pairingIndex % Math.max(pairings.length, 1)];
+
+  if ((fill === "solid" || fill === "solid-outline") && !pairing) {
+    const fillId =
+      result.initialFillColorId ??
+      palette.find((c) => c.role === "hero")?.id ??
+      palette[0].id;
+    result = {
+      ...result,
+      initialFillColorId: fillId,
+      textColorId: ensureContrastingText(fillId, result.textColorId, pairings, palette),
+    };
+  }
 
   if ((fill === "solid" || fill === "solid-outline") && pairing) {
     const needsDefaultFix =
@@ -900,10 +922,19 @@ export function reconcileCTAStyleDefinition(
         pairings,
         palette,
       );
+      if (colorsMatchByIdOrHex(hover.hoverFillColorId, result.initialFillColorId, palette)) {
+        hover.hoverFillColorId =
+          mostVisibleOnPage(result.initialFillColorId, palette) ?? hover.hoverFillColorId;
+      }
       result = {
         ...result,
         hoverFillColorId: hover.hoverFillColorId,
-        hoverTextColorId: hover.hoverTextColorId,
+        hoverTextColorId: ensureContrastingText(
+          hover.hoverFillColorId,
+          hover.hoverTextColorId,
+          pairings,
+          palette,
+        ),
       };
     } else if (result.hoverFillColorId) {
       result = {
