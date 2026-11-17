@@ -169,6 +169,38 @@ export default function App() {
               onBack={() => goTo("buttons")}
             />
           )}
+
+          <footer className="app-footer">
+            <span>
+              Created by{" "}
+              <a href="https://thecolorpalettestudio.com/" target="_blank" rel="noreferrer">
+                The Color Palette Studio
+              </a>
+            </span>
+            <nav className="app-footer__links" aria-label="Legal and contact">
+              <a
+                href="https://thecolorpalettestudio.com/policies/terms-of-service"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Terms of Service
+              </a>
+              <a
+                href="https://thecolorpalettestudio.com/policies/privacy-policy"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="https://thecolorpalettestudio.com/pages/contact"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Contact
+              </a>
+            </nav>
+          </footer>
         </main>
       </div>
     </div>

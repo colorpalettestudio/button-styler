@@ -27,7 +27,12 @@ function useFillHeight(deps: unknown[]) {
       if (!bars || !step || !main) return;
       const mainStyle = getComputedStyle(main);
       const mainPadding = parseFloat(mainStyle.paddingTop) + parseFloat(mainStyle.paddingBottom);
-      const otherContent = (step as HTMLElement).offsetHeight - bars.offsetHeight + mainPadding;
+      const footer = main.querySelector<HTMLElement>(".app-footer");
+      const footerHeight = footer
+        ? footer.offsetHeight + parseFloat(getComputedStyle(footer).marginTop)
+        : 0;
+      const otherContent =
+        (step as HTMLElement).offsetHeight - bars.offsetHeight + mainPadding + footerHeight;
       const available = window.innerHeight - otherContent;
       const cap = window.innerHeight * BARS_MAX_VIEWPORT;
       setHeight(Math.round(Math.max(BARS_MIN_HEIGHT, Math.min(available, cap))));

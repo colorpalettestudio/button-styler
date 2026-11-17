@@ -660,10 +660,10 @@ export function resolveTextColorForBackground(
     return heuristic;
   }
 
-  const anyContrast = candidates.find((candidate) =>
-    hasAdequateContrast(candidate.id, resolvedBgId, palette),
-  );
-  return anyContrast?.id ?? heuristic;
+  const highestContrast = candidates
+    .map((candidate) => ({ id: candidate.id, ratio: getContrastRatio(candidate.hex, bg.hex) }))
+    .sort((a, b) => b.ratio - a.ratio)[0];
+  return highestContrast?.id ?? heuristic;
 }
 
 function applyInitialColor(
@@ -744,6 +744,9 @@ export function ctaDefinitionNeedsColorFix(
 
   const template = CTA_TEMPLATE_MAP.get(resolveTemplateId(def.presetId));
   if (!template) return false;
+
+  if (!def.initialFillColorId || !def.hoverFillColorId) return true;
+  if (!isTextOnlyStyle(def) && (!def.textColorId || !def.hoverTextColorId)) return true;
 
   if (isTextOnlyStyle(def)) {
     if (
@@ -841,9 +844,12 @@ export function reconcileCTAStyleDefinition(
   }
 
   if (isTextOnlyStyle(result)) {
+    if (!result.initialFillColorId) {
+      result.initialFillColorId = mostVisibleOnPage(undefined, palette);
+      result.textColorId = result.initialFillColorId;
+    }
     if (
-      result.initialFillColorId &&
-      result.hoverFillColorId &&
+      !result.hoverFillColorId ||
       colorsMatchByIdOrHex(result.initialFillColorId, result.hoverFillColorId, palette)
     ) {
       const alternate = mostVisibleOnPage(result.initialFillColorId, palette);
@@ -897,7 +903,16 @@ export function reconcileCTAStyleDefinition(
   }
 
   if (fill === "outline") {
-    const hoverBorder = result.hoverFillColorId ?? result.initialFillColorId;
+    if (!result.initialFillColorId) {
+      result.initialFillColorId = mostVisibleOnPage(undefined, palette);
+      result.textColorId = result.initialFillColorId;
+    }
+    result.textColorId ??= result.initialFillColorId;
+    const hoverBorder =
+      result.hoverFillColorId ??
+      mostVisibleOnPage(result.initialFillColorId, palette) ??
+      result.initialFillColorId;
+    if (!result.hoverFillColorId) result.hoverTextColorId = hoverBorder;
     const hoverText = outlineHoverTextBlendsIn(result, palette)
       ? hoverBorder
       : (result.hoverTextColorId ?? result.textColorId);
