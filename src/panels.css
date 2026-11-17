@@ -840,6 +840,12 @@
   transition: background-color 0.2s;
 }
 
+.export-images__list--transparent {
+  background-color: #fff;
+  background-image: conic-gradient(#e6e6e6 25%, transparent 0 50%, #e6e6e6 0 75%, transparent 0);
+  background-size: 16px 16px;
+}
+
 .export-images__row {
   display: grid;
   grid-template-columns: minmax(8rem, 0.5fr) minmax(0, 1fr) minmax(0, 1fr);

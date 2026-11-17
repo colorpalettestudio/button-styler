@@ -141,7 +141,10 @@ export default function ExportPanel({
           </div>
         </div>
 
-        <ul className="export-images__list" style={{ backgroundColor: previewBackground }}>
+        <ul
+          className={`export-images__list${background ? "" : " export-images__list--transparent"}`}
+          style={background ? { backgroundColor: background } : undefined}
+        >
           {styles.map(({ cta }) => (
             <li key={cta.id} className="export-images__row">
               <span className="export-images__name">{cta.name}</span>

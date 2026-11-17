@@ -10,7 +10,6 @@ interface ColorsPanelProps {
   onContinue: () => void;
 }
 
-const MAX_COLORS = 12;
 const BARS_MIN_HEIGHT = 256;
 const BARS_MAX_VIEWPORT = 0.7;
 
@@ -91,6 +90,15 @@ export default function ColorsPanel({ colors, onColorsChange, onContinue }: Colo
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const bars = useFillHeight([pasteOpen, colors.length === 0]);
 
+  const prevColorCount = useRef(colors.length);
+  useEffect(() => {
+    const list = bars.ref.current;
+    if (list && colors.length > prevColorCount.current) {
+      list.scrollTo({ left: list.scrollWidth, behavior: "smooth" });
+    }
+    prevColorCount.current = colors.length;
+  }, [colors.length, bars.ref]);
+
   const setHex = (id: string, hex: string) => {
     onColorsChange(colors.map((c) => (c.id === id ? { ...c, hex, name: hex } : c)));
   };
@@ -100,7 +108,7 @@ export default function ColorsPanel({ colors, onColorsChange, onContinue }: Colo
   };
 
   const openAddPicker = () => {
-    if (colors.length >= MAX_COLORS || !addButtonRef.current) return;
+    if (!addButtonRef.current) return;
     setPicker({
       mode: "add",
       anchor: addButtonRef.current,
@@ -116,7 +124,7 @@ export default function ColorsPanel({ colors, onColorsChange, onContinue }: Colo
   const studioCode = useMemo(() => parseStudioCode(pasteDraft), [pasteDraft]);
 
   const pastedHexes = useMemo(() => {
-    if (studioCode) return studioCode.hexes.slice(0, MAX_COLORS);
+    if (studioCode) return studioCode.hexes;
     const matches = pasteDraft.match(/#?\b[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b/g) ?? [];
     const existing = new Set(colors.map((c) => c.hex.toUpperCase()));
     const unique: string[] = [];
@@ -124,7 +132,7 @@ export default function ColorsPanel({ colors, onColorsChange, onContinue }: Colo
       const hex = normalizeHex(match);
       if (hex && !existing.has(hex) && !unique.includes(hex)) unique.push(hex);
     }
-    return unique.slice(0, MAX_COLORS - colors.length);
+    return unique;
   }, [pasteDraft, colors, studioCode]);
 
   const addPasted = () => {
@@ -186,7 +194,6 @@ export default function ColorsPanel({ colors, onColorsChange, onContinue }: Colo
               type="button"
               className="btn-ghost"
               onClick={() => (picker?.mode === "add" ? setPicker(null) : openAddPicker())}
-              disabled={colors.length >= MAX_COLORS}
               aria-expanded={picker?.mode === "add"}
             >
               + Add color
